@@ -1,0 +1,24 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    height: 100vh;
+    width: 100%;
+}
+
+.gameboard-container {
+    margin: 2rem;
+}
+
+.gameboard-cell {
+    border: 2px solid black;
+    height: 100px;
+    width: 100px;
+}
+
+.gameboard-line {
+    display: flex;
+}
