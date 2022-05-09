@@ -1,5 +1,7 @@
 const playerFactory = (name, input) => {
-    return {name, input};
+    let scoreCount = 0;
+    let command = "human";
+    return {name, input, scoreCount, command};
 }
 
 //Elements for DOM manipulation
@@ -45,6 +47,7 @@ const gameBoard = (() => {
         }
     }
     
+    //Remove lines/cells and reset cell idnum so that createBoard() can be used to remake board. Invoked with reset button.
     const reset = () => {
         for (let i = 3; i > 0; i--) {
             document.getElementById(`line-${i}`).remove();
@@ -59,7 +62,7 @@ const gameBoard = (() => {
 
 
 const runGame = (() => {
-    //Array to hold 
+    //Array to hold user inputs. 1 = empty slot.
     let gameArr = [1, 1, 1, 1, 1, 1, 1, 1, 1];
 
     //Check to see if there is a winner or a tie
@@ -97,34 +100,54 @@ const runGame = (() => {
 
     //Add most recent player entry to screen
     const displayController = ((input) => {
-        currentCell = document.getElementById(`cell-${arrPos}`);
-        currentCell.innerText = input;
+        document.getElementById(`cell-${arrPos}`).innerText = input;
         //Reset arrPos to ensure no errors(there is no arr[10])
         arrPos = 10;
     })
 
-    //Reset some parameters of this module for resetting game
+    //Reset first player to player1 and reset gameArray for reset button.
     const reset = () => {
         player = player1;
         gameArr = [1, 1, 1, 1, 1, 1, 1, 1, 1];
     }
+
+    //Remove ID from cell to disable event listener. Used to stop game. 
+    const idRemove = (() => {
+        for (let i = 0; i < gameArr.length; i++) {
+            document.getElementById(`cell-${i}`).removeAttribute('id');
+        }
+    })
+
+    //Chooses available array position at random for an AI player.
+    const randomPick = (() => {
+        let pick = 10;
+        while (gameArr[pick] != 1) {
+            Math.floor(Math.random()*9)
+        }
+    })
     
-    // even listener triggers turn
+    // event listener triggers turn
     const game = () => {
         let input = player.input;
+        //Automatically make move if player is AI
+        if (player.command === "AI") {
+            randomPick();
+        }
         if (checkArray() === true) {
             updateArray(input);
             displayController(input);
-            //Both instances below need a way to stop game. and print results to screen
+            //Both instances below need a way to print results to screen
             if (checkWin() === 3) {   
                 console.log(`${player.name} wins!`);
-                
+                idRemove();
+                player.scoreCount++;
             } else if (checkWin() === 5) {
                 console.log("It\'s a tie.")
+                idRemove();
             }
             //Swap between players
             player = ((player === player1) ? player2 : player1)
-        } 
+        }
     }
     
     //Variable to be updated in click
