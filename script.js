@@ -1,13 +1,6 @@
-const playerFactory = (name, input) => {
-    let scoreCount = 0;
-    let command = "human";
-    return {name, input, scoreCount, command};
-}
-
 //Elements for DOM manipulation
 const idRepo = (() => {
     let container = document.getElementById('gameboard-container')
-    
     return {container}
 })();
 
@@ -53,7 +46,6 @@ const gameBoard = (() => {
             document.getElementById(`line-${i}`).remove();
         }
         idnum = 0;
-        createBoard();
     }
 
     return {createBoard, reset};
@@ -64,6 +56,41 @@ const gameBoard = (() => {
 const runGame = (() => {
     //Array to hold user inputs. 1 = empty slot.
     let gameArr = [1, 1, 1, 1, 1, 1, 1, 1, 1];
+
+    //Factory function for players
+    const playerFactory = (name, input, command) => {
+        return {name, input, command};
+    }
+
+    // Two players
+    let player1 = playerFactory("Player 1", "X", "human");
+    let player2 = playerFactory("Player 2", "O", "human");
+
+    //Start game with player 1
+    let player = player1;
+
+    //Check each player to make sure that command matches user choice
+    const checkCommand = (player) => {
+        if (player.name == "Player 1") {
+            if (document.querySelector('input[id="p1-human"]').checked == true) {
+                player.command = "human";
+            } else {
+                player.command = "AI";
+            }
+        } else {
+            if (document.querySelector('input[id="p2-human"]').checked == true) {
+                player.command = "human";
+            } else {
+                player.command = "AI";
+            }
+        }
+    }
+
+    //Run checkCommand() with both players
+    const runCComand = () => {
+        checkCommand(player1);
+        checkCommand(player2);
+    }
 
     //Check to see if there is a winner or a tie
     //Winner code = 3 and Tie code = 5
@@ -88,21 +115,32 @@ const runGame = (() => {
 
     //Check to make sure position in array has not been used yet
     const checkArray = (() => {
-        if (gameArr[arrPos] === 1) {
+        if (gameArr[_arrPos] === 1) {
             return true;
         }
     })
 
     //Add the player's X or O into the array
     const updateArray = ((user) => {
-        gameArr[arrPos] = user;
+        gameArr[_arrPos] = user;
     })
 
     //Add most recent player entry to screen
     const displayController = ((input) => {
-        document.getElementById(`cell-${arrPos}`).innerText = input;
-        //Reset arrPos to ensure no errors(there is no arr[10])
-        arrPos = 10;
+        document.getElementById(`cell-${_arrPos}`).innerText = input;
+        //Reset _arrPos to ensure no errors(there is no arr[10])
+        _arrPos = 10;
+    })
+
+    //Display which player's turn it is
+    const printTurn = ((player) => {
+        document.getElementById('game-info').innerText = `${player.name}'s turn.`;
+    }) 
+
+    //Display winner of game and unhide reset button
+    const printWinner = ((message) => {
+        document.getElementById('game-info').innerText = message;
+        document.getElementById('reset').classList.toggle('hidden');
     })
 
     //Reset first player to player1 and reset gameArray for reset button.
@@ -122,62 +160,78 @@ const runGame = (() => {
     const randomPick = (() => {
         let pick = 10;
         while (gameArr[pick] != 1) {
-            Math.floor(Math.random()*9)
+            pick = Math.floor(Math.random()*9)
+        }
+        return pick;
+    })
+
+    //Check if next player is an AI
+    const aiCheck = (() => {
+        //Automatically make move if next player is AI
+        if (player.command == "AI") {
+            _arrPos = randomPick();
+            game();
         }
     })
-    
-    // event listener triggers turn
+
+    //Triggered by event listener when cell is clicked or by aiCheck()
     const game = () => {
         let input = player.input;
-        //Automatically make move if player is AI
-        if (player.command === "AI") {
-            randomPick();
-        }
         if (checkArray() === true) {
             updateArray(input);
             displayController(input);
-            //Both instances below need a way to print results to screen
             if (checkWin() === 3) {   
-                console.log(`${player.name} wins!`);
+                printWinner(`Congratulations! ${player.name} wins!`);
                 idRemove();
                 player.scoreCount++;
             } else if (checkWin() === 5) {
-                console.log("It\'s a tie.")
+                printWinner("It\'s a tie.")
                 idRemove();
-            }
-            //Swap between players
+            } else {
             player = ((player === player1) ? player2 : player1)
+            printTurn(player);
+            }
         }
+        aiCheck();
     }
     
-    //Variable to be updated in click
-    let arrPos = 10;
+    //Variable to be updated in click event on cell
+    let _arrPos = 10;
     //Click will get position clicked and run game function
     idRepo.container.addEventListener('click', e => {
-        arrPos = e.target.id.slice(-1);
+        _arrPos = e.target.id.slice(-1);
         game();
     })
 
-    //Create two players, currently hardcoded
-    const player1 = playerFactory("player1", "X");
-    const player2 = playerFactory("player2", "O");
-
-    //Start game with player 1
-    let player = player1;
-    
-    //Run function to create the baord
-    gameBoard.createBoard();
-
-    return {reset}
+    return {reset, aiCheck, printTurn, player, runCComand}
     
 })();
 
 const buttons = (() => {
     let rstBtn = document.getElementById('reset');
     rstBtn.addEventListener('click', e => {
+        //Remove gameBoard divs and reset gameArr/current player
         gameBoard.reset();
         runGame.reset();
+        //Unhide the first input display and hide the game-info div and resetBtn
+        document.getElementById('front-page').classList.toggle('hidden');
+        document.getElementById('game-info').classList.toggle('hidden');
+        document.getElementById('reset').classList.toggle('hidden');
     })
     
+    let startBtn = document.getElementById('start-btn');
+    startBtn.addEventListener('click', e => {
+        //Hide first input display and unhide div where turn/winner is printed to
+        document.getElementById('front-page').classList.toggle('hidden');
+        document.getElementById('game-info').classList.toggle('hidden');
+        //Run function to create the baord
+        gameBoard.createBoard();
+        //reassign player's command property if necessary
+        runGame.runCComand();
+        //Runs first turn if player 1 is AI
+        runGame.aiCheck();
+        //Prints the first turn to the game-info div
+        runGame.printTurn(runGame.player);
+    })
 })();
 
