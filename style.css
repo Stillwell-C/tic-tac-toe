@@ -10,6 +10,68 @@
 body {
     height: 100vh;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+h1 {
+    text-align: center;
+    margin: 2rem;
+    font-size: 3rem;;
+}
+
+.front-page {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.front-bottom {
+    grid-column: 1 / 3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.front-left,
+.front-right
+{
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    margin: 15px;
+    gap: 15px
+}
+
+input[type="radio"] {
+    display: none;
+}
+
+.front-left label,
+.front-right label {
+    text-align: center;
+    border: 2px solid blue;
+    border-radius: 5px;
+    padding: 10px 50px;
+    /* display:flex;
+    align-items: center; */
+}
+
+input[type="radio"]:checked + label {
+    background-color: red;
+    color: white;
+}
+
+.game-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;;
+}
+
+.reset-btn {
+    margin-top: 15px;
 }
 
 .gameboard-container {
@@ -32,4 +94,23 @@ body {
 
 .gameboard-line {
     display: flex;
+}
+
+button {
+    padding: 10px 30px;
+    border: 2px solid blue;
+    border-radius: 3px;
+    background-color: blue;
+    font-size: 1rem;
+    color: white;
+}
+
+button:hover {
+    background-color: white;
+    color: blue;
+
+}
+
+.hidden {
+    display: none;
 }
